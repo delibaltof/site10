@@ -70,10 +70,10 @@
 }
 
 .text4_1 {
-    font-family: var(--font-raleway);
+    font-family: var(--font-outfit);
     font-size: clamp(1.125rem, 1.5vw, 1.5rem);
-    font-weight: 400;
-    line-height: 1.125;
+    font-weight: 300;
+    line-height: 1.4125;
     color: #333333;
 }
 
@@ -83,9 +83,6 @@
     font-weight: 500;
     line-height: 1.125;
     color: #333333;
-
-
-
     font-weight: 200;
     color: var(--clr-text);
     line-height: 1.1;
@@ -429,7 +426,6 @@ margin-bottom: 1rem;
     display: inline-flex;
     align-items: center;
     gap: 0.5rem;
-    margin-top: 5rem;
     padding: 0.4rem 1.5rem;
     border-radius: 50px;
     border: 1px solid #42424233;
@@ -450,7 +446,7 @@ margin-bottom: 1rem;
 }
 
 .about-photo {
-    width: clamp(280px, 40vw, 500px);
+    width: clamp(280px, 40vw, 600px);
     height: 100%;
     border-radius: var(--radius);
     object-fit: cover;
@@ -469,8 +465,8 @@ margin-bottom: 1rem;
 
     #hero {
     min-height: calc(100svh - var(--nav-h));
-    background-position: -810px -270px;  /* ← меняй */
-    background-size:2800px auto;        /* ← меняй */
+    background-position: -545px -210px;
+    background-size:2000px auto;
     overflow: hidden;
     }
 
@@ -496,14 +492,41 @@ margin-bottom: 1rem;
     }
 
     .hero-right p {
-margin-top: 3rem;
-margin-bottom: 3rem;
+margin-top: 1rem;
+margin-bottom: 1rem;
 }
 
+.text7 {
+   font-size: 2.5rem;
+    font-weight: 700;
+}
+
+.text4 {
+    font-size: 1.1rem;
+    font-weight: 500;
+}
+
+.text4_2 {
+    font-size: 2rem;
+    font-weight: 500;
+    line-height: 1.125;
+    color: #333333;
+    font-weight: 200;
+    color: var(--clr-text);
+    line-height: 1.1;
+    margin-top: 0rem;
+}
+
+.btn-start {
+    font-size: 1rem;
+}
 
     #about-container {
+        display: flex;
+        flex-direction: column;
         grid-template-columns: 1fr;
         align-self: stretch;
+        gap: 1.25rem;
     }
 
     .about-photo {
@@ -518,8 +541,41 @@ margin-bottom: 3rem;
     }
 
     .tag {
+        margin-top: 2rem;
         align-self: center;
     }
+
+
+    /* -------ORDERS---------------------------------------------------------------------------- */
+
+
+.about-right {
+        order: 2;  /* фото второе */
+    }
+
+    .about-left {
+        display: contents;  /* распаковывает дочерние элементы */
+    }
+
+    .tag {
+        order: 1;
+    }
+
+    .text4_2 {
+        order: 1;
+    }
+
+    .about-right {
+        order: 2;
+    }
+
+    .text4_1 {
+        order: 3;
+    }
+
+
+
+    /* ----------------------------------------------------------------------------------- */
 }
 
 /* ===== ANIMATIONS ===== */
