@@ -468,7 +468,7 @@ margin-bottom: 1rem;
 }
 
     #hero {
-    min-height: calc(100dvh - var(--nav-h));
+    min-height: calc(100svh - var(--nav-h));
     background-position: -810px -270px;  /* ← меняй */
     background-size:2800px auto;        /* ← меняй */
     overflow: hidden;
@@ -481,7 +481,7 @@ margin-bottom: 1rem;
 
     #hero-container {
         grid-template-columns: 1fr;
-        min-height: calc(100dvh - var(--nav-h));
+        min-height: calc(100svh - var(--nav-h));
     }
         .accent-word {
         color: var(--clr-rose);
