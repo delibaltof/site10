@@ -1,285 +1,601 @@
-document.fonts.ready.then(() => {
-    document.body.classList.add('fonts-loaded');
+console.log('main.js loaded');
 
-/* ================================================
-   REVIEWS CAROUSEL — вставить в конец main.js
-   ================================================ */
- 
-(function initReviews() {
- 
-  const track    = document.getElementById('reviewsTrack');
-  const viewport = track?.parentElement;
-  const prevBtn  = document.getElementById('reviewsPrev');
-  const nextBtn  = document.getElementById('reviewsNext');
- 
-  if (!track) return;
- 
-  const VISIBLE = 3;
-  const GAP     = 16;
-  const cards   = track.querySelectorAll('.review-card');
-  const steps   = cards.length - VISIBLE + 1;
-  let current   = 0;
- 
-  function cardWidth() {
-    return (viewport.offsetWidth - GAP * (VISIBLE - 1)) / VISIBLE;
+/* ============================================================
+   NAV OFFSET
+   Keeps anchor scrolling aligned with the real fixed navbar height.
+   ============================================================ */
+
+(function initNavOffset() {
+  function start() {
+    const navbar = document.getElementById('navbar');
+
+    if (!navbar) return;
+
+    function updateNavOffset() {
+      const navbarHeight = Math.ceil(navbar.getBoundingClientRect().height);
+      document.documentElement.style.setProperty('--nav-offset', `${navbarHeight}px`);
+    }
+
+    updateNavOffset();
+
+    window.addEventListener('resize', updateNavOffset);
+    window.addEventListener('orientationchange', updateNavOffset);
+
+    if ('ResizeObserver' in window) {
+      new ResizeObserver(updateNavOffset).observe(navbar);
+    }
   }
- 
-  function goTo(i) {
-    current = Math.max(0, Math.min(i, steps - 1));
-    track.style.transform = `translateX(-${current * (cardWidth() + GAP)}px)`;
-    prevBtn.disabled = current === 0;
-    nextBtn.disabled = current === steps - 1;
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', start);
+  } else {
+    start();
   }
- 
-  prevBtn.addEventListener('click', () => goTo(current - 1));
-  nextBtn.addEventListener('click', () => goTo(current + 1));
- 
-  window.addEventListener('resize', () => goTo(current));
- 
-  goTo(0);
- 
+})();
+
+/* ============================================================
+   MOBILE MENU
+   ============================================================ */
+
+(function initMobileMenu() {
+  function start() {
+    console.log('mobile menu init');
+
+    const menuToggle = document.querySelector('.mobile-menu-toggle');
+    const mobileMenu = document.getElementById('mobile-menu');
+    const mobileMenuLinks = document.querySelectorAll('.mobile-menu__link');
+
+    if (!menuToggle || !mobileMenu) return;
+
+    function setMenuOpen(isOpen) {
+      document.body.classList.toggle('menu-open', isOpen);
+
+      mobileMenu.classList.toggle('is-open', isOpen);
+      mobileMenu.setAttribute('aria-hidden', String(!isOpen));
+
+      menuToggle.setAttribute('aria-expanded', String(isOpen));
+      menuToggle.setAttribute(
+        'aria-label',
+        isOpen ? 'Close navigation menu' : 'Open navigation menu'
+      );
+
+      mobileMenuLinks.forEach(link => {
+        link.tabIndex = isOpen ? 0 : -1;
+      });
+    }
+
+    setMenuOpen(false);
+
+    menuToggle.addEventListener('click', event => {
+      event.preventDefault();
+      event.stopPropagation();
+
+      console.log('mobile menu clicked');
+
+      const isOpen = menuToggle.getAttribute('aria-expanded') === 'true';
+      setMenuOpen(!isOpen);
+    });
+
+    mobileMenuLinks.forEach(link => {
+      link.addEventListener('click', () => {
+        setMenuOpen(false);
+      });
+    });
+
+    document.addEventListener('keydown', event => {
+      if (event.key === 'Escape') {
+        setMenuOpen(false);
+      }
+    });
+
+    window.addEventListener('resize', () => {
+      if (window.matchMedia('(min-width: 951px)').matches) {
+        setMenuOpen(false);
+      }
+    });
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', start);
+  } else {
+    start();
+  }
 })();
 
 
+
+
+
+
+
+
+
+
 /* ============================================================
-   mariiaeats — contact-script.js
-   Подключи перед </body>:
-   <script src="js/contact-script.js"></script>
+   REVIEWS CAROUSEL
+   ============================================================ */
 
-   !! ВАЖНО: замени FORMSPREE_ENDPOINT на свой реальный адрес.
-   Получить на formspree.io → New Form → скопировать endpoint.
-============================================================ */
+(function initReviewsCarousel() {
+  function start() {
+    const viewport = document.querySelector('.reviews__viewport');
+    const track = document.querySelector('.reviews__track');
+    const cards = Array.from(document.querySelectorAll('.review-card'));
 
-(function () {
+    if (!viewport || !track || cards.length === 0) return;
+
+    const AUTOPLAY_DELAY = 1250;
+    const TRANSITION_DURATION = 650;
+    const MOBILE_QUERY = window.matchMedia('(max-width: 768px)');
+const DESKTOP_QUERY = window.matchMedia('(min-width: 769px)');
+const DESKTOP_SCROLL_SPEED = 70;
+    let currentIndex = 0;
+    let autoplayTimer = null;
+    let isAnimating = false;
+    let scrollTimer = null;
+    let autoplayDisabled = false;
+    let isDesktopDragging = false;
+let dragStartX = 0;
+let dragStartScrollLeft = 0;
+let desktopFrame = null;
+let desktopLastTime = null;
+let desktopScrollPosition = 0;
+let reviewsInView = false;
+let touchStartX = 0;
+let touchStartY = 0;
+
+    function getGap() {
+      const styles = window.getComputedStyle(track);
+      return parseFloat(styles.columnGap || styles.gap || 0) || 0;
+    }
+
+    function getStep() {
+      return cards[0].offsetWidth + getGap();
+    }
+
+    function getMaxIndex() {
+      return cards.length - 1;
+    }
+
+    function updateCurrentIndex() {
+      const step = getStep();
+
+      if (!step) return;
+
+      currentIndex = Math.round(viewport.scrollLeft / step);
+      currentIndex = Math.max(0, Math.min(currentIndex, getMaxIndex()));
+    }
+
+    function animateScrollTo(targetLeft, duration) {
+  const startLeft = viewport.scrollLeft;
+  const distance = targetLeft - startLeft;
+  const startTime = performance.now();
+
+  isAnimating = true;
+  viewport.classList.add('is-auto-scrolling');
+
+  function tick(now) {
+    const progress = Math.min((now - startTime) / duration, 1);
+const eased = 1 - Math.pow(1 - progress, 3);
+
+    viewport.scrollLeft = startLeft + distance * eased;
+
+    if (progress < 1) {
+      requestAnimationFrame(tick);
+      return;
+    }
+
+    viewport.scrollLeft = targetLeft;
+    viewport.classList.remove('is-auto-scrolling');
+
+    isAnimating = false;
+    updateCurrentIndex();
+
+    if (currentIndex < getMaxIndex()) {
+      startAutoplay();
+    }
+  }
+
+  requestAnimationFrame(tick);
+}
+
+    function goTo(index) {
+      const nextIndex = Math.max(0, Math.min(index, getMaxIndex()));
+
+      currentIndex = nextIndex;
+      animateScrollTo(currentIndex * getStep(), TRANSITION_DURATION);
+    }
+
+    function stopAutoplay() {
+      if (autoplayTimer) {
+        clearTimeout(autoplayTimer);
+        autoplayTimer = null;
+      }
+    }
+
+function startAutoplay() {
+  stopAutoplay();
+
+  if (!reviewsInView) return;
+  if (autoplayDisabled) return;
+  if (!MOBILE_QUERY.matches) return;
+  if (currentIndex >= getMaxIndex()) return;
+
+  autoplayTimer = setTimeout(function () {
+    goTo(currentIndex + 1);
+  }, AUTOPLAY_DELAY);
+}
+
+    function restartAutoplay() {
+      stopAutoplay();
+      updateCurrentIndex();
+
+      if (currentIndex < getMaxIndex()) {
+        startAutoplay();
+      }
+    }
+
+viewport.addEventListener('touchstart', function (event) {
+  touchStartX = event.touches[0].clientX;
+  touchStartY = event.touches[0].clientY;
+}, { passive: true });
+
+viewport.addEventListener('touchmove', function (event) {
+  if (autoplayDisabled) return;
+
+  const touchX = event.touches[0].clientX;
+  const touchY = event.touches[0].clientY;
+
+  const deltaX = Math.abs(touchX - touchStartX);
+  const deltaY = Math.abs(touchY - touchStartY);
+
+  if (deltaX > 8 && deltaX > deltaY) {
+    autoplayDisabled = true;
+    stopAutoplay();
+  }
+}, { passive: true });
+
+viewport.addEventListener('touchend', function () {
+  updateCurrentIndex();
+}, { passive: true });
+
+
+
+function getMaxScrollLeft() {
+  return Math.max(0, viewport.scrollWidth - viewport.clientWidth);
+}
+
+function startDesktopAutoScroll() {
+  if (desktopFrame) return;
+
+  desktopScrollPosition = viewport.scrollLeft;
+
+  function tick(now) {
+    if (!DESKTOP_QUERY.matches) {
+      desktopLastTime = now;
+      desktopFrame = requestAnimationFrame(tick);
+      return;
+    }
+
+    if (desktopLastTime === null) {
+      desktopLastTime = now;
+    }
+
+    const delta = now - desktopLastTime;
+    desktopLastTime = now;
+
+if (reviewsInView && !isDesktopDragging && desktopScrollPosition < getMaxScrollLeft()) {
+      desktopScrollPosition += (DESKTOP_SCROLL_SPEED * delta) / 1000;
+      viewport.scrollLeft = desktopScrollPosition;
+    }
+
+    desktopFrame = requestAnimationFrame(tick);
+  }
+
+  desktopFrame = requestAnimationFrame(tick);
+}
+
+viewport.addEventListener('mousedown', function (event) {
+  if (!DESKTOP_QUERY.matches) return;
+  if (event.button !== 0) return;
+
+  isDesktopDragging = true;
+  dragStartX = event.clientX;
+  dragStartScrollLeft = viewport.scrollLeft;
+  desktopScrollPosition = viewport.scrollLeft;
+  viewport.classList.add('is-dragging');
+});
+
+window.addEventListener('mousemove', function (event) {
+  if (!isDesktopDragging) return;
+
+  const distance = event.clientX - dragStartX;
+desktopScrollPosition = dragStartScrollLeft - distance;
+viewport.scrollLeft = desktopScrollPosition;
+});
+
+window.addEventListener('mouseup', function () {
+  if (!isDesktopDragging) return;
+
+  isDesktopDragging = false;
+  viewport.classList.remove('is-dragging');
+  desktopScrollPosition = viewport.scrollLeft;
+});
+
+
+
+
+const reviewsObserver = new IntersectionObserver(function (entries) {
+  entries.forEach(function (entry) {
+    reviewsInView = entry.isIntersecting;
+
+    if (reviewsInView) {
+  desktopScrollPosition = viewport.scrollLeft;
+  startDesktopAutoScroll();
+  startAutoplay();
+} else {
+  stopAutoplay();
+}
+  });
+}, {
+  threshold: 0.2
+});
+
+reviewsObserver.observe(viewport);
+window.addEventListener('resize', function () {
+  updateCurrentIndex();
+  viewport.scrollLeft = currentIndex * getStep();
+  restartAutoplay();
+});
+
+updateCurrentIndex();
+startAutoplay();
+MOBILE_QUERY.addEventListener('change', restartAutoplay);
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', start);
+  } else {
+    start();
+  }
+})();
+
+/* ============================================================
+   CONTACT FORM
+   ============================================================ */
+
+(function initContactForm() {
   'use strict';
 
-  /* ── Настройки ──────────────────────────────────────────── */
-  const FORMSPREE_ENDPOINT = 'https://formspree.io/f/XXXXXXXX'; // <-- замени
+  const FORMSPREE_ENDPOINT = 'https://formspree.io/f/XXXXXXXX';
 
-  /* ── Поля с правилами валидации ─────────────────────────── */
   const FIELDS = [
     {
-      id:    'ce-name',
+      id: 'ce-name',
       errId: 'ce-name-err',
-      check: v => v.trim().length >= 2
-        ? ''
-        : 'Please enter your full name.',
+      check: value =>
+        value.trim().length >= 2 ? '' : 'Please enter your full name.',
     },
     {
-      id:    'ce-age',
+      id: 'ce-age',
       errId: 'ce-age-err',
-      check: v => {
-        const n = parseInt(v, 10);
-        return (!n || n < 16 || n > 100)
-          ? 'Please enter a valid age (16–100).'
+      check: value => {
+        const number = parseInt(value, 10);
+
+        return !number || number < 16 || number > 100
+          ? 'Please enter a valid age (16-100).'
           : '';
       },
     },
     {
-      id:    'ce-email',
+      id: 'ce-email',
       errId: 'ce-email-err',
-      check: v => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v.trim())
-        ? ''
-        : 'Please enter a valid email address.',
+      check: value =>
+        /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim())
+          ? ''
+          : 'Please enter a valid email address.',
     },
     {
-      id:    'ce-goal',
+      id: 'ce-goal',
       errId: 'ce-goal-err',
-      check: v => v ? '' : 'Please select your goal.',
+      check: value => (value ? '' : 'Please select your goal.'),
     },
     {
-      id:    'ce-service',
+      id: 'ce-service',
       errId: 'ce-service-err',
-      check: v => v ? '' : 'Please select a service.',
+      check: value => (value ? '' : 'Please select a service.'),
     },
     {
-      id:    'ce-message',
+      id: 'ce-message',
       errId: 'ce-message-err',
-      check: v => v.trim().length >= 10
-        ? ''
-        : 'Please tell me a bit more about your goals.',
+      check: value =>
+        value.trim().length >= 10
+          ? ''
+          : 'Please tell me a bit more about your goals.',
     },
   ];
 
-  /* ── DOM helpers ─────────────────────────────────────────── */
-  function $(id) { return document.getElementById(id); }
+  function byId(id) {
+    return document.getElementById(id);
+  }
 
-  /* ── Сброс всех ошибок ───────────────────────────────────── */
   function clearErrors() {
-    FIELDS.forEach(f => {
-      const el  = $(f.id);
-      const err = $(f.errId);
-      if (el)  el.classList.remove('err');
-      if (err) err.textContent = '';
+    FIELDS.forEach(field => {
+      const element = byId(field.id);
+      const error = byId(field.errId);
+
+      if (element) element.classList.remove('err');
+      if (error) error.textContent = '';
     });
   }
 
-  /* ── Валидация всех полей ────────────────────────────────── */
   function validate() {
     clearErrors();
-    let ok = true;
-    FIELDS.forEach(f => {
-      const el  = $(f.id);
-      const err = $(f.errId);
-      if (!el) return;
-      const msg = f.check(el.value);
-      if (msg) {
-        el.classList.add('err');
-        if (err) err.textContent = msg;
-        ok = false;
+
+    let isValid = true;
+
+    FIELDS.forEach(field => {
+      const element = byId(field.id);
+      const error = byId(field.errId);
+
+      if (!element) return;
+
+      const message = field.check(element.value);
+
+      if (message) {
+        element.classList.add('err');
+        if (error) error.textContent = message;
+        isValid = false;
       }
     });
-    return ok;
+
+    return isValid;
   }
 
-  /* ── Инициализация ───────────────────────────────────────── */
-  function init() {
-    const form   = $('ce-form');
-    const btn    = $('ce-submit');
-    const okEl   = $('ce-ok');
-    const failEl = $('ce-fail');
-    if (!form) return;
+  function start() {
+    const form = byId('ce-form');
+    const button = byId('ce-submit');
+    const okElement = byId('ce-ok');
+    const failElement = byId('ce-fail');
 
-    /* Сброс ошибки поля при вводе */
-    FIELDS.forEach(f => {
-      const el = $(f.id);
-      if (!el) return;
-      el.addEventListener('input', () => {
-        el.classList.remove('err');
-        const err = $(f.errId);
-        if (err) err.textContent = '';
+    if (!form || !button || !okElement || !failElement) return;
+
+    FIELDS.forEach(field => {
+      const element = byId(field.id);
+
+      if (!element) return;
+
+      element.addEventListener('input', () => {
+        element.classList.remove('err');
+
+        const error = byId(field.errId);
+        if (error) error.textContent = '';
       });
     });
 
-    /* Отправка формы */
-    form.addEventListener('submit', async function (e) {
-      e.preventDefault();
+    form.addEventListener('submit', async event => {
+      event.preventDefault();
+
       if (!validate()) return;
 
-      btn.classList.add('loading');
-      btn.disabled = true;
-      okEl.style.display   = 'none';
-      failEl.style.display = 'none';
+      button.classList.add('loading');
+      button.disabled = true;
+
+      okElement.style.display = 'none';
+      failElement.style.display = 'none';
 
       try {
-        const res = await fetch(FORMSPREE_ENDPOINT, {
-          method:  'POST',
-          body:    new FormData(form),
-          headers: { Accept: 'application/json' },
+        const response = await fetch(FORMSPREE_ENDPOINT, {
+          method: 'POST',
+          body: new FormData(form),
+          headers: {
+            Accept: 'application/json',
+          },
         });
 
-        if (res.ok) {
-          okEl.textContent   = "✓ Message sent! I'll get back to you within 24 hours.";
-          okEl.style.display = 'block';
+        if (response.ok) {
+          okElement.textContent =
+            "Message sent! I'll get back to you within 24 hours.";
+          okElement.style.display = 'block';
+
           form.reset();
           clearErrors();
         } else {
-          const json = await res.json().catch(() => ({}));
+          const json = await response.json().catch(() => ({}));
           throw new Error(json.error || 'Something went wrong. Please try again.');
         }
-      } catch (err) {
-        failEl.textContent   = err.message || 'Something went wrong. Please email me directly.';
-        failEl.style.display = 'block';
+      } catch (error) {
+        failElement.textContent =
+          error.message || 'Something went wrong. Please email me directly.';
+        failElement.style.display = 'block';
       } finally {
-        btn.classList.remove('loading');
-        btn.disabled = false;
+        button.classList.remove('loading');
+        button.disabled = false;
       }
     });
   }
 
-  /* ── Запуск после загрузки DOM ───────────────────────────── */
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', init);
+    document.addEventListener('DOMContentLoaded', start);
   } else {
-    init();
+    start();
   }
-
 })();
 
 /* ============================================================
-   certificates.js — Certificates section behaviour
-   - Анимация счётчика цифр в stats при появлении в viewport
-   - Staggered fade-in для карточек
+   CERTIFICATES
    ============================================================ */
 
-(function () {
+(function initCertificates() {
   'use strict';
 
-  /* ── Утилита: анимация числа от 0 до target ─────────────── */
-  function animateCounter(el, target, duration, suffix) {
+  function animateCounter(textNode, target, duration) {
     const start = performance.now();
     const isFloat = target % 1 !== 0;
 
     function tick(now) {
       const elapsed = now - start;
       const progress = Math.min(elapsed / duration, 1);
-      /* ease-out cubic */
       const eased = 1 - Math.pow(1 - progress, 3);
       const current = eased * target;
 
-      el.textContent = isFloat
+      textNode.textContent = isFloat
         ? current.toFixed(1)
         : Math.round(current).toString();
 
       if (progress < 1) {
         requestAnimationFrame(tick);
       } else {
-        el.textContent = target.toString();
+        textNode.textContent = target.toString();
       }
     }
 
     requestAnimationFrame(tick);
   }
 
-  /* ── Конфиг счётчиков ────────────────────────────────────── */
-  /* Каждый .stat-num содержит число + опционально <sup>.
-     Мы анимируем только текстовый узел, <sup> не трогаем.      */
   function initCounters() {
     const items = document.querySelectorAll('.cert-stats .stat-item');
 
-    items.forEach(function (item) {
-      const numEl = item.querySelector('.stat-num');
-      if (!numEl) return;
+    items.forEach(item => {
+      const numberElement = item.querySelector('.stat-num');
 
-      /* Читаем только первый текстовый узел (само число) */
-      const textNode = Array.from(numEl.childNodes).find(
-        function (n) { return n.nodeType === Node.TEXT_NODE; }
+      if (!numberElement) return;
+
+      const textNode = Array.from(numberElement.childNodes).find(
+        node => node.nodeType === Node.TEXT_NODE
       );
+
       if (!textNode) return;
 
-      const raw = parseFloat(textNode.textContent.trim());
-      if (isNaN(raw)) return;
+      const target = parseFloat(textNode.textContent.trim());
 
-      /* Сохраняем оригинал, ставим 0 до анимации */
-      numEl.dataset.target = raw;
+      if (Number.isNaN(target)) return;
+
       textNode.textContent = '0';
 
       item._textNode = textNode;
-      item._target   = raw;
+      item._target = target;
     });
 
     return items;
   }
 
-  /* ── Stagger-анимация карточек ───────────────────────────── */
   function initCards() {
     const cards = document.querySelectorAll('.cert-card');
 
-    cards.forEach(function (card, i) {
-      card.style.opacity    = '0';
-      card.style.transform  = 'translateY(24px)';
+    cards.forEach((card, index) => {
+      card.style.opacity = '0';
+      card.style.transform = 'translateY(24px)';
       card.style.transition =
-        'opacity .5s ease ' + (i * 80) + 'ms, ' +
-        'transform .5s cubic-bezier(.22,1,.36,1) ' + (i * 80) + 'ms';
+        `opacity .5s ease ${index * 80}ms, ` +
+        `transform .5s cubic-bezier(.22,1,.36,1) ${index * 80}ms`;
     });
 
     return cards;
   }
 
-  /* ── IntersectionObserver ────────────────────────────────── */
   function observe(statsItems, cards) {
-    var statsAnimated = false;
-    var cardsAnimated = false;
+    let statsAnimated = false;
+    let cardsAnimated = false;
 
     const statsBlock = document.querySelector('.cert-stats');
     const cardsBlock = document.querySelector('.cert-grid');
@@ -287,68 +603,146 @@ document.fonts.ready.then(() => {
     if (!statsBlock || !cardsBlock) return;
 
     const observer = new IntersectionObserver(
-      function (entries) {
-        entries.forEach(function (entry) {
-
-          /* Stats */
+      entries => {
+        entries.forEach(entry => {
           if (entry.target === statsBlock && !statsAnimated && entry.isIntersecting) {
             statsAnimated = true;
-            statsItems.forEach(function (item) {
+
+            statsItems.forEach(item => {
               if (item._textNode && item._target !== undefined) {
                 animateCounter(item._textNode, item._target, 1200);
               }
             });
           }
 
-          /* Cards */
           if (entry.target === cardsBlock && !cardsAnimated && entry.isIntersecting) {
             cardsAnimated = true;
-            cards.forEach(function (card) {
-              card.style.opacity   = '1';
+
+            cards.forEach(card => {
+              card.style.opacity = '1';
               card.style.transform = 'translateY(0)';
             });
           }
         });
       },
-      { threshold: 0.15 }
+      {
+        threshold: 0.15,
+      }
     );
 
     observer.observe(statsBlock);
     observer.observe(cardsBlock);
   }
 
-  /* ── Init ────────────────────────────────────────────────── */
-  function init() {
-    /* Проверяем, что секция есть на странице */
+  function start() {
     if (!document.querySelector('.cert-section')) return;
 
     const statsItems = initCounters();
-    const cards      = initCards();
+    const cards = initCards();
 
     if ('IntersectionObserver' in window) {
       observe(statsItems, cards);
     } else {
-      /* Fallback: показать всё сразу без анимации */
-      statsItems.forEach(function (item) {
+      statsItems.forEach(item => {
         if (item._textNode && item._target !== undefined) {
           item._textNode.textContent = item._target.toString();
         }
       });
-      cards.forEach(function (card) {
-        card.style.opacity   = '1';
+
+      cards.forEach(card => {
+        card.style.opacity = '1';
         card.style.transform = 'translateY(0)';
       });
     }
   }
 
-  /* Запуск после загрузки DOM */
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', init);
+    document.addEventListener('DOMContentLoaded', start);
   } else {
-    init();
+    start();
+  }
+})();
+
+/* ============================================================
+   LOGO FALLBACK
+   ============================================================ */
+
+(function initLogoFallback() {
+  function start() {
+    const logoImage = document.querySelector('.logo-icon');
+
+    if (!logoImage) return;
+
+    logoImage.addEventListener('error', () => {
+      logoImage.style.display = 'none';
+    });
   }
 
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', start);
+  } else {
+    start();
+  }
+})();
+
+/* ============================================================
+   FONTS
+   Only controls font-loaded animations. Nothing important waits for this.
+   ============================================================ */
+
+(function initFontsLoadedClass() {
+  if (document.fonts && document.fonts.ready) {
+    document.fonts.ready.then(() => {
+      document.body.classList.add('fonts-loaded');
+    });
+  } else {
+    document.body.classList.add('fonts-loaded');
+  }
+
+ (function initScrollReveal() {
+  const sections = document.querySelectorAll('#about, #certificates, #services, #contact, #reviews');
+  const DESKTOP_QUERY = window.matchMedia('(min-width: 769px)');
+
+  if (!sections.length) return;
+
+  let hasUserScrolled = false;
+
+  const observer = new IntersectionObserver(function (entries) {
+    entries.forEach(function (entry) {
+      if (!entry.isIntersecting) return;
+
+      if (DESKTOP_QUERY.matches && !hasUserScrolled) return;
+
+      entry.target.classList.add('is-visible');
+      observer.unobserve(entry.target);
+    });
+  }, {
+    threshold: 0.15
+  });
+
+  sections.forEach(function (section) {
+    observer.observe(section);
+  });
+
+  window.addEventListener('scroll', function () {
+    if (hasUserScrolled) return;
+
+    if (window.scrollY > 40) {
+      hasUserScrolled = true;
+
+      sections.forEach(function (section) {
+        const rect = section.getBoundingClientRect();
+        const isVisible = rect.top < window.innerHeight && rect.bottom > 0;
+
+        if (isVisible) {
+          section.classList.add('is-visible');
+          observer.unobserve(section);
+        }
+      });
+    }
+  }, { passive: true });
 })();
 
 
-});
+
+})();
