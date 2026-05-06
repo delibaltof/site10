@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Postural Assessment — CES Tool</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background: #f5f5f3; color: #1a1a1a; font-size: 16px; }
+
+header { background: #0F6E56; color: white; padding: 16px 20px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; }
+header h1 { font-size: 17px; font-weight: 500; }
+header span { font-size: 13px; opacity: 0.8; }
+
+.container { max-width: 900px; margin: 0 auto; padding: 16px; }
+
+.client-bar { background: white; border-radius: 12px; padding: 14px 16px; margin-bottom: 16px; display: flex; gap: 10px; flex-wrap: wrap; align-items: center; border: 1px solid #e0e0dc; }
+.client-bar input { flex: 1; min-width: 160px; font-size: 15px; border: 1px solid #d0d0cc; border-radius: 8px; padding: 8px 12px; background: #fafafa; color: #1a1a1a; }
+.client-bar input:focus { outline: none; border-color: #1D9E75; }
+
+.btn { font-size: 14px; padding: 9px 18px; cursor: pointer; border-radius: 8px; border: 1px solid #d0d0cc; background: white; color: #1a1a1a; font-weight: 500; }
+.btn-primary { background: #1D9E75; color: white; border-color: #0F6E56; }
+.btn-primary:active { background: #0F6E56; }
+.btn-report { background: #185FA5; color: white; border-color: #0C447C; font-size: 15px; padding: 11px 24px; width: 100%; margin-top: 8px; border-radius: 10px; }
+.btn-report:active { background: #0C447C; }
+
+.result-box { background: white; border-radius: 12px; padding: 14px 16px; margin-bottom: 16px; border: 1px solid #e0e0dc; }
+.result-label { font-size: 12px; color: #888; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 8px; }
+.badges { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; min-height: 32px; }
+.badge { display: inline-flex; align-items: center; padding: 5px 14px; border-radius: 20px; font-size: 14px; font-weight: 500; border: 1px solid; }
+.badge-lcs     { background: #E1F5EE; color: #0F6E56;  border-color: #5DCAA5; }
+.badge-ucs     { background: #E6F1FB; color: #185FA5;  border-color: #85B7EB; }
+.badge-layered { background: #EEEDFE; color: #3C3489;  border-color: #AFA9EC; }
+.badge-pes     { background: #FAEEDA; color: #633806;  border-color: #EF9F27; }
+.badge-none    { background: #f0f0ec; color: #888;     border-color: #d0d0cc; }
+.result-count  { font-size: 12px; color: #aaa; margin-top: 6px; }
+
+.sec-card { background: white; border-radius: 12px; margin-bottom: 14px; border: 1px solid #e0e0dc; overflow: hidden; }
+.sec-header { background: #f0f0ec; padding: 10px 16px; font-size: 12px; font-weight: 600; color: #555; text-transform: uppercase; letter-spacing: 0.06em; border-bottom: 1px solid #e0e0dc; }
+.muscle-grid { display: grid; grid-template-columns: 1fr 1fr; }
+.col-head { padding: 8px 14px; font-size: 12px; font-weight: 600; border-bottom: 1px solid #e8e8e4; }
+.col-head-oa { color: #993C1D; border-right: 1px solid #e8e8e4; }
+.col-head-ua { color: #185FA5; }
+.col-body { padding: 10px 14px; }
+.col-body-oa { border-right: 1px solid #e8e8e4; }
+
+.muscle-row { display: flex; align-items: flex-start; gap: 10px; padding: 7px 0; cursor: pointer; -webkit-tap-highlight-color: transparent; border-bottom: 1px solid #f5f5f3; }
+.muscle-row:last-child { border-bottom: none; }
+.muscle-row input[type=checkbox] { width: 22px; height: 22px; accent-color: #1D9E75; cursor: pointer; flex-shrink: 0; margin-top: 1px; }
+.muscle-row label { font-size: 14px; color: #333; cursor: pointer; line-height: 1.4; }
+.muscle-row.checked label { color: #0F6E56; font-weight: 500; }
+
+.tag { display: inline-block; font-size: 10px; padding: 1px 5px; border-radius: 8px; margin-left: 4px; font-weight: 700; vertical-align: middle; }
+.tag-oa { background: #FAECE7; color: #993C1D; }
+.tag-ua { background: #E6F1FB; color: #185FA5; }
+
+.notes-section { background: white; border-radius: 12px; padding: 14px 16px; margin-bottom: 16px; border: 1px solid #e0e0dc; }
+.notes-label { font-size: 12px; font-weight: 600; color: #888; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 8px; }
+textarea { width: 100%; font-size: 15px; min-height: 80px; border-radius: 8px; border: 1px solid #d0d0cc; padding: 10px 12px; background: #fafafa; color: #1a1a1a; resize: vertical; font-family: inherit; }
+textarea:focus { outline: none; border-color: #1D9E75; }
+
+.action-row { display: flex; gap: 10px; margin-bottom: 32px; flex-wrap: wrap; }
+
+/* REPORT */
+#report-section { display: none; background: white; border-radius: 12px; border: 1px solid #e0e0dc; margin-bottom: 24px; overflow: hidden; }
+.report-header { background: #0F6E56; color: white; padding: 20px 24px; }
+.report-header h2 { font-size: 20px; font-weight: 500; margin-bottom: 4px; }
+.report-header p { font-size: 13px; opacity: 0.8; }
+.report-body { padding: 20px 24px; }
+.report-syndrome-row { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 20px; }
+.report-block { margin-bottom: 20px; }
+.report-block-title { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.07em; color: #888; margin-bottom: 10px; padding-bottom: 6px; border-bottom: 1px solid #eee; }
+.report-zone { margin-bottom: 14px; }
+.report-zone-name { font-size: 13px; font-weight: 600; color: #444; margin-bottom: 6px; }
+.report-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.report-col-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px; }
+.report-col-label-oa { color: #993C1D; }
+.report-col-label-ua { color: #185FA5; }
+.report-muscle { font-size: 13px; color: #333; padding: 3px 0; border-bottom: 1px solid #f5f5f3; }
+.report-muscle:last-child { border-bottom: none; }
+.report-muscle-none { font-size: 13px; color: #bbb; font-style: italic; }
+.report-notes { background: #f9f9f7; border-radius: 8px; padding: 12px 14px; font-size: 14px; color: #444; line-height: 1.6; white-space: pre-wrap; }
+.report-footer { font-size: 11px; color: #bbb; margin-top: 20px; padding-top: 12px; border-top: 1px solid #eee; }
+
+@media (max-width: 600px) {
+  .muscle-grid { grid-template-columns: 1fr; }
+  .col-body-oa { border-right: none; border-bottom: 1px solid #e8e8e4; }
+  .report-cols { grid-template-columns: 1fr; }
+}
+@media print {
+  header { position: static; }
+  .action-row, .btn-report, #assessment-section { display: none !important; }
+  #report-section { display: block !important; border: none; }
+  body { background: white; }
+  .report-header { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Postural Assessment</h1>
+  <span>CES Tool</span>
+</header>
+
+<div class="container">
+
+  <div id="assessment-section">
+    <div class="client-bar">
+      <input type="text" id="clientName" placeholder="Client name" />
+      <input type="date" id="assessDate" />
+      <button class="btn btn-primary" onclick="clearAll()">Reset</button>
+    </div>
+
+    <div class="result-box">
+      <div class="result-label">Likely syndrome</div>
+      <div class="badges" id="syndrome-result"><span class="badge badge-none">No findings checked</span></div>
+      <div class="result-count" id="check-counts"></div>
+    </div>
+
+    <div id="sections-container"></div>
+
+    <div class="notes-section">
+      <div class="notes-label">Notes</div>
+      <textarea id="notes" placeholder="Additional observations, referral notes, next steps..."></textarea>
+    </div>
+
+    <button class="btn btn-report" onclick="generateReport()">Generate Report</button>
+
+    <div class="action-row" style="margin-top:12px;">
+      <button class="btn" onclick="clearAll()">Reset all</button>
+    </div>
+  </div>
+
+  <!-- REPORT -->
+  <div id="report-section">
+    <div class="report-header">
+      <h2 id="rpt-name"></h2>
+      <p id="rpt-meta"></p>
+    </div>
+    <div class="report-body">
+      <div class="report-block">
+        <div class="report-block-title">Postural syndrome</div>
+        <div class="report-syndrome-row" id="rpt-badges"></div>
+      </div>
+      <div class="report-block">
+        <div class="report-block-title">Muscle imbalances identified</div>
+        <div id="rpt-muscles"></div>
+      </div>
+      <div class="report-block" id="rpt-notes-block">
+        <div class="report-block-title">Notes</div>
+        <div class="report-notes" id="rpt-notes"></div>
+      </div>
+      <div class="report-footer" id="rpt-footer"></div>
+    </div>
+  </div>
+
+  <div id="report-actions" style="display:none; margin-bottom:32px;">
+    <div class="action-row">
+      <button class="btn btn-primary" onclick="window.print()">Print / Save PDF</button>
+      <button class="btn" onclick="backToAssessment()">Back to assessment</button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+var DATA = [
+  {
+    title: "Foot and Ankle",
+    over:  [
+      { id:"gastro",    label:"Gastrocnemius / Soleus",            syn:["LCS","Layered"] },
+      { id:"peroneals", label:"Peroneals",                          syn:["Pes"] }
+    ],
+    under: [
+      { id:"tib-ant",   label:"Tibialis anterior",                  syn:["Pes"] }
+    ]
+  },
+  {
+    title: "Knee",
+    over:  [
+      { id:"tfl",       label:"TFL / Biceps femoris (short head)",  syn:["Pes","LCS","Layered"] }
+    ],
+    under: [
+      { id:"vmo",       label:"VMO (Vastus medialis oblique)",       syn:["Pes"] }
+    ]
+  },
+  {
+    title: "Lumbo-Pelvic-Hip Complex",
+    over:  [
+      { id:"hipflex",   label:"Hip flexors (iliopsoas, rec. fem.)",  syn:["LCS","Layered"] },
+      { id:"lumext",    label:"Lumbar extensors (erector spinae)",   syn:["LCS","Layered"] }
+    ],
+    under: [
+      { id:"abdom",     label:"Abdominals (anterior core)",          syn:["LCS","Layered"] },
+      { id:"hipext",    label:"Hip extensors (hamstrings)",           syn:["LCS","Layered"] },
+      { id:"glutes",    label:"Gluteus maximus / medius",             syn:["LCS","Layered"] }
+    ]
+  },
+  {
+    title: "Shoulders and Thoracic Spine",
+    over:  [
+      { id:"pect",      label:"Pectoralis major / minor",            syn:["UCS","Layered"] },
+      { id:"uptrap",    label:"Upper trapezius",                     syn:["UCS","Layered"] },
+      { id:"levscap",   label:"Levator scapulae",                    syn:["UCS","Layered"] }
+    ],
+    under: [
+      { id:"midtrap",   label:"Middle / lower trapezius",            syn:["UCS","Layered"] },
+      { id:"rhomboids", label:"Rhomboids",                           syn:["UCS","Layered"] },
+      { id:"serratus",  label:"Serratus anterior",                   syn:["UCS","Layered"] }
+    ]
+  },
+  {
+    title: "Head and Cervical Spine",
+    over:  [
+      { id:"cervext",   label:"Cervical extensors",                  syn:["UCS","Layered"] }
+    ],
+    under: [
+      { id:"deepneck",  label:"Deep neck flexors",                   syn:["UCS","Layered"] }
+    ]
+  }
+];
+
+function allMuscles() {
+  var out = [];
+  for (var i = 0; i < DATA.length; i++) {
+    for (var j = 0; j < DATA[i].over.length; j++)  out.push({ m: DATA[i].over[j],  type:"over",  zone: DATA[i].title });
+    for (var k = 0; k < DATA[i].under.length; k++) out.push({ m: DATA[i].under[k], type:"under", zone: DATA[i].title });
+  }
+  return out;
+}
+
+function makeRow(m, type) {
+  var row = document.createElement("div");
+  row.className = "muscle-row";
+  row.id = "mi-" + m.id;
+
+  var cb = document.createElement("input");
+  cb.type = "checkbox";
+  cb.id = "cb-" + m.id;
+  cb.addEventListener("change", update);
+
+  var lbl = document.createElement("label");
+  lbl.htmlFor = "cb-" + m.id;
+  lbl.textContent = m.label;
+
+  var tag = document.createElement("span");
+  tag.className = type === "over" ? "tag tag-oa" : "tag tag-ua";
+  tag.textContent = type === "over" ? "OA" : "UA";
+  lbl.appendChild(tag);
+
+  row.appendChild(cb);
+  row.appendChild(lbl);
+  return row;
+}
+
+function buildSections() {
+  var container = document.getElementById("sections-container");
+  for (var i = 0; i < DATA.length; i++) {
+    var sec = DATA[i];
+    var card = document.createElement("div");
+    card.className = "sec-card";
+
+    var hdr = document.createElement("div");
+    hdr.className = "sec-header";
+    hdr.textContent = sec.title;
+    card.appendChild(hdr);
+
+    var grid = document.createElement("div");
+    grid.className = "muscle-grid";
+
+    var hOA = document.createElement("div");
+    hOA.className = "col-head col-head-oa";
+    hOA.textContent = "Overactive / Shortened";
+
+    var hUA = document.createElement("div");
+    hUA.className = "col-head col-head-ua";
+    hUA.textContent = "Underactive / Lengthened";
+
+    var colOA = document.createElement("div");
+    colOA.className = "col-body col-body-oa";
+    for (var j = 0; j < sec.over.length; j++) colOA.appendChild(makeRow(sec.over[j], "over"));
+
+    var colUA = document.createElement("div");
+    colUA.className = "col-body";
+    for (var k = 0; k < sec.under.length; k++) colUA.appendChild(makeRow(sec.under[k], "under"));
+
+    grid.appendChild(hOA);
+    grid.appendChild(hUA);
+    grid.appendChild(colOA);
+    grid.appendChild(colUA);
+    card.appendChild(grid);
+    container.appendChild(card);
+  }
+}
+
+function getSyndromeHTML(scores) {
+  var html = "";
+  if (scores.Layered >= 3) {
+    html += "<span class=\"badge badge-layered\">Layered Crossed Syndrome</span>";
+  } else {
+    if (scores.LCS >= 2) html += "<span class=\"badge badge-lcs\">Lower Crossed Syndrome</span>";
+    if (scores.UCS >= 2) html += "<span class=\"badge badge-ucs\">Upper Crossed Syndrome</span>";
+  }
+  if (scores.Pes >= 2) html += "<span class=\"badge badge-pes\">Pes Planus Distortion</span>";
+  if (!html) html = "<span class=\"badge badge-none\">Mixed / inconclusive</span>";
+  return html;
+}
+
+function update() {
+  var entries = allMuscles();
+  var scores = { LCS:0, UCS:0, Layered:0, Pes:0 };
+  var total = 0;
+
+  for (var i = 0; i < entries.length; i++) {
+    var e  = entries[i];
+    var cb = document.getElementById("cb-" + e.m.id);
+    var mi = document.getElementById("mi-" + e.m.id);
+    if (!cb || !mi) continue;
+    if (cb.checked) {
+      total++;
+      mi.className = "muscle-row checked";
+      for (var s = 0; s < e.m.syn.length; s++) scores[e.m.syn[s]]++;
+    } else {
+      mi.className = "muscle-row";
+    }
+  }
+
+  var resultEl = document.getElementById("syndrome-result");
+  var countEl  = document.getElementById("check-counts");
+
+  if (total === 0) {
+    resultEl.innerHTML = "<span class=\"badge badge-none\">No findings checked</span>";
+    countEl.textContent = "";
+    return;
+  }
+  countEl.textContent = "Findings checked: " + total;
+  resultEl.innerHTML = getSyndromeHTML(scores);
+}
+
+function generateReport() {
+  var entries = allMuscles();
+  var scores  = { LCS:0, UCS:0, Layered:0, Pes:0 };
+  var checkedByZone = {};
+
+  for (var i = 0; i < entries.length; i++) {
+    var e  = entries[i];
+    var cb = document.getElementById("cb-" + e.m.id);
+    if (!cb || !cb.checked) continue;
+    for (var s = 0; s < e.m.syn.length; s++) scores[e.m.syn[s]]++;
+    if (!checkedByZone[e.zone]) checkedByZone[e.zone] = { over:[], under:[] };
+    checkedByZone[e.zone][e.type].push(e.m.label);
+  }
+
+  var clientName = document.getElementById("clientName").value || "Client";
+  var assessDate = document.getElementById("assessDate").value || today();
+  var notes      = document.getElementById("notes").value;
+
+  document.getElementById("rpt-name").textContent = clientName;
+  document.getElementById("rpt-meta").textContent = "Assessment date: " + assessDate + "  |  Corrective Exercise Specialist";
+  document.getElementById("rpt-badges").innerHTML = getSyndromeHTML(scores);
+
+  var musclesDiv = document.getElementById("rpt-muscles");
+  musclesDiv.innerHTML = "";
+
+  var hasAny = false;
+  for (var z = 0; z < DATA.length; z++) {
+    var zoneName = DATA[z].title;
+    var zData = checkedByZone[zoneName];
+    if (!zData || (zData.over.length === 0 && zData.under.length === 0)) continue;
+    hasAny = true;
+
+    var zoneDiv = document.createElement("div");
+    zoneDiv.className = "report-zone";
+
+    var zTitle = document.createElement("div");
+    zTitle.className = "report-zone-name";
+    zTitle.textContent = zoneName;
+    zoneDiv.appendChild(zTitle);
+
+    var cols = document.createElement("div");
+    cols.className = "report-cols";
+
+    var colOA = document.createElement("div");
+    var lblOA = document.createElement("div");
+    lblOA.className = "report-col-label report-col-label-oa";
+    lblOA.textContent = "Overactive / Shortened";
+    colOA.appendChild(lblOA);
+    if (zData.over.length > 0) {
+      for (var a = 0; a < zData.over.length; a++) {
+        var d = document.createElement("div");
+        d.className = "report-muscle";
+        d.textContent = zData.over[a];
+        colOA.appendChild(d);
+      }
+    } else {
+      var none = document.createElement("div");
+      none.className = "report-muscle-none";
+      none.textContent = "None noted";
+      colOA.appendChild(none);
+    }
+
+    var colUA = document.createElement("div");
+    var lblUA = document.createElement("div");
+    lblUA.className = "report-col-label report-col-label-ua";
+    lblUA.textContent = "Underactive / Lengthened";
+    colUA.appendChild(lblUA);
+    if (zData.under.length > 0) {
+      for (var b = 0; b < zData.under.length; b++) {
+        var d2 = document.createElement("div");
+        d2.className = "report-muscle";
+        d2.textContent = zData.under[b];
+        colUA.appendChild(d2);
+      }
+    } else {
+      var none2 = document.createElement("div");
+      none2.className = "report-muscle-none";
+      none2.textContent = "None noted";
+      colUA.appendChild(none2);
+    }
+
+    cols.appendChild(colOA);
+    cols.appendChild(colUA);
+    zoneDiv.appendChild(cols);
+    musclesDiv.appendChild(zoneDiv);
+  }
+
+  if (!hasAny) {
+    musclesDiv.innerHTML = "<p style=\"color:#bbb;font-size:14px;\">No muscles selected.</p>";
+  }
+
+  var notesBlock = document.getElementById("rpt-notes-block");
+  if (notes.trim()) {
+    document.getElementById("rpt-notes").textContent = notes;
+    notesBlock.style.display = "block";
+  } else {
+    notesBlock.style.display = "none";
+  }
+
+  var d = new Date();
+  document.getElementById("rpt-footer").textContent = "Generated: " + d.toLocaleDateString() + " " + d.toLocaleTimeString() + "  |  For professional use only. This is not a medical diagnosis.";
+
+  document.getElementById("assessment-section").style.display = "none";
+  document.getElementById("report-section").style.display = "block";
+  document.getElementById("report-actions").style.display = "block";
+  window.scrollTo(0, 0);
+}
+
+function backToAssessment() {
+  document.getElementById("assessment-section").style.display = "block";
+  document.getElementById("report-section").style.display = "none";
+  document.getElementById("report-actions").style.display = "none";
+  window.scrollTo(0, 0);
+}
+
+function today() {
+  var d  = new Date();
+  var mm = ("0" + (d.getMonth() + 1)).slice(-2);
+  var dd = ("0" + d.getDate()).slice(-2);
+  return d.getFullYear() + "-" + mm + "-" + dd;
+}
+
+function clearAll() {
+  var entries = allMuscles();
+  for (var i = 0; i < entries.length; i++) {
+    var cb = document.getElementById("cb-" + entries[i].m.id);
+    if (cb) cb.checked = false;
+  }
+  document.getElementById("clientName").value = "";
+  document.getElementById("assessDate").value = today();
+  document.getElementById("notes").value = "";
+  update();
+}
+
+buildSections();
+document.getElementById("assessDate").value = today();
+</script>
+</body>
+</html>
