@@ -366,53 +366,49 @@ MOBILE_QUERY.addEventListener('change', restartAutoplay);
 (function initContactForm() {
   'use strict';
 
- const FORMSPREE_ENDPOINT = 'https://formspree.io/f/xvzlbbbv';
+const FORMSPREE_ENDPOINT = 'https://formspree.io/f/xvzlbbbv';
 
-  const FIELDS = [
-    {
-      id: 'ce-name',
-      errId: 'ce-name-err',
-      check: value =>
-        value.trim().length >= 2 ? '' : 'Please enter your full name.',
-    },
-    {
-      id: 'ce-age',
-      errId: 'ce-age-err',
-      check: value => {
-        const number = parseInt(value, 10);
+const FIELDS = [
+  {
+    id: 'ce-name',
+    errId: 'ce-name-err',
+    check: value =>
+      value.trim().length >= 2 ? '' : 'Please enter your full name.',
+  },
+  {
+  id: 'ce-age',
+  errId: 'ce-age-err',
+  check: value => {
+    const trimmed = value.trim();
 
-        return !number || number < 16 || number > 100
-          ? 'Please enter a valid age (16-100).'
-          : '';
-      },
-    },
-    {
-      id: 'ce-email',
-      errId: 'ce-email-err',
-      check: value =>
-        /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim())
-          ? ''
-          : 'Please enter a valid email address.',
-    },
-    {
-      id: 'ce-goal',
-      errId: 'ce-goal-err',
-      check: value => (value ? '' : 'Please select your goal.'),
-    },
-    {
-      id: 'ce-service',
-      errId: 'ce-service-err',
-      check: value => (value ? '' : 'Please select a service.'),
-    },
-    {
-      id: 'ce-message',
-      errId: 'ce-message-err',
-      check: value =>
-        value.trim().length >= 10
-          ? ''
-          : 'Please tell me a bit more about your goals.',
-    },
-  ];
+    if (!/^\d+$/.test(trimmed)) {
+      return 'Please enter a valid age (16-100).';
+    }
+
+    const number = parseInt(trimmed, 10);
+
+    return number < 16 || number > 100
+      ? 'Please enter a valid age (16-100).'
+      : '';
+  },
+},
+  {
+    id: 'ce-email',
+    errId: 'ce-email-err',
+    check: value =>
+      /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim())
+        ? ''
+        : 'Please enter a valid email address.',
+  },
+  {
+    id: 'ce-phone',
+    errId: 'ce-phone-err',
+    check: value =>
+      /^[+\d][\d\s().-]{6,}$/.test(value.trim())
+        ? ''
+        : 'Please enter a valid phone number.',
+  },
+];
 
   function byId(id) {
     return document.getElementById(id);
