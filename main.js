@@ -366,7 +366,7 @@ MOBILE_QUERY.addEventListener('change', restartAutoplay);
 (function initContactForm() {
   'use strict';
 
-const FORMSPREE_ENDPOINT = 'https://formspree.io/f/xvzlbbbv';
+const FORMSPREE_ENDPOINT = 'https://formspree.io/f/xzdoakrj';
 
 const FIELDS = [
   {
