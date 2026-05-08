@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -393,13 +392,30 @@
 
         <!-- Левая колонка: заголовок + соцсети -->
         <div class="ce-left">
-          <div class="ce-tag">Get Started</div>
+          <!-- <div class="ce-tag">• Get Started</div> -->
+              <div class="ce-tag2"><span class="ce-dot">•</span>Get Started</div>
           <h2 class="ce-heading" id="contact-heading">Let's work<br><em>together</em></h2>
           <p class="ce-desc">Ready to start your transformation? Fill in the form and I'll get back to you within 24
             hours. No obligations — just a conversation about your goals.</p>
+
           <div class="ce-divider"></div>
-          <div class="ce-socials-label">Find me on</div>
+          <div class="ce-socials-label">Contact me here:</div>
           <div class="ce-socials">
+
+<a class="ce-social" href="tel:+15618870377">
+  <span class="ce-social-icon phone">
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+      stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.8 19.8 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.12 4.18 2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.12.9.32 1.78.59 2.63a2 2 0 0 1-.45 2.11L8 9.71a16 16 0 0 0 6.29 6.29l1.25-1.25a2 2 0 0 1 2.11-.45c.85.27 1.73.47 2.63.59A2 2 0 0 1 22 16.92z" />
+    </svg>
+  </span>
+
+  <div>
+    <div class="ce-social-name">+1 (561) 887 03 77</div>
+        <!-- <div class="ce-social-name">Phone</div>
+    <div class="ce-social-handle">+1 (561) 887 03 77</div> -->
+  </div>
+</a>
 
             <a class="ce-social" href="https://instagram.com/mariiaeats" target="_blank" rel="noopener noreferrer">
               <span class="ce-social-icon ig">
@@ -476,8 +492,8 @@
               </div>
               <div class="ce-group">
                 <label class="ce-label" for="ce-age">Age *</label>
-                <input class="ce-input" id="ce-age" type="number" name="age" placeholder="e.g. 32" min="16" max="100"
-                  required />
+<input class="ce-input" id="ce-age" type="text" name="age" placeholder="Your age" inputmode="numeric" required />
+
                 <span class="ce-err-msg" id="ce-age-err" role="alert" aria-live="polite"></span>
               </div>
             </div>
@@ -489,46 +505,17 @@
               <span class="ce-err-msg" id="ce-email-err" role="alert" aria-live="polite"></span>
             </div>
 
-            <div class="ce-row">
-              <div class="ce-group">
-                <label class="ce-label" for="ce-goal">Your Goal *</label>
-                <select class="ce-select" id="ce-goal" name="goal" required>
-                  <option value="">Select goal</option>
-                  <option value="Weight Loss">Weight Loss</option>
-                  <option value="Muscle Gain">Muscle Gain</option>
-                  <option value="General Health">General Health</option>
-                  <option value="Body Recomposition">Body Recomposition</option>
-                </select>
-                <span class="ce-err-msg" id="ce-goal-err" role="alert" aria-live="polite"></span>
-              </div>
-              <div class="ce-group">
-                <label class="ce-label" for="ce-service">Service *</label>
-                <select class="ce-select" id="ce-service" name="service" required>
-                  <option value="">Select service</option>
-                  <option value="Personal Training">Personal Training</option>
-                  <option value="Nutrition Plan">Nutrition Plan</option>
-                  <option value="Online Coaching">Online Coaching</option>
-                  <option value="Full Transformation">Full Transformation</option>
-                </select>
-                <span class="ce-err-msg" id="ce-service-err" role="alert" aria-live="polite"></span>
-              </div>
-            </div>
+            <div class="ce-group">
+  <label class="ce-label" for="ce-phone">Phone Number *</label>
+  <input class="ce-input" id="ce-phone" type="tel" name="phone" placeholder="+1 234 567 8900"
+    autocomplete="tel" required />
+  <span class="ce-err-msg" id="ce-phone-err" role="alert" aria-live="polite"></span>
+</div>
 
             <div class="ce-group">
-              <label class="ce-label" for="ce-activity">Activity Level</label>
-              <select class="ce-select" id="ce-activity" name="activity">
-                <option value="">Select level</option>
-                <option value="Sedentary">Sedentary (desk job, little exercise)</option>
-                <option value="Light">Light (1–2 days/week)</option>
-                <option value="Moderate">Moderate (3–4 days/week)</option>
-                <option value="Very Active">Very Active (5+ days/week)</option>
-              </select>
-            </div>
-
-            <div class="ce-group">
-              <label class="ce-label" for="ce-message">Tell me about your goals *</label>
+              <label class="ce-label" for="ce-message">Tell me about your goals</label>
               <textarea class="ce-textarea" id="ce-message" name="message" rows="4"
-                placeholder="What do you want to achieve? Any injuries or dietary restrictions?" required></textarea>
+                placeholder="What do you want to achieve? "></textarea>
               <span class="ce-err-msg" id="ce-message-err" role="alert" aria-live="polite"></span>
             </div>
 
