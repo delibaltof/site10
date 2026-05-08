@@ -705,7 +705,7 @@ body.menu-open {
   margin: 0 auto;
   padding-top: 4rem;
   padding-bottom: 2rem;
-  overflow: hidden;
+  overflow: visible;
 }
 
 #services::before {
