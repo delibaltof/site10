@@ -1109,15 +1109,15 @@ body.menu-open {
   font-size: 0.9rem;
   line-height: 1.85;
   color: #6b6b67;
-  margin-bottom: 2.75rem;
+  margin-bottom: 1rem;
   max-width: 320px;
 }
 
 .ce-divider {
-  width: 36px;
+  width: 60%;
   height: 1px;
   background: #c8d9d3;
-  margin-bottom: 2rem;
+  margin-bottom: 1rem;
 }
 
 /* ── Соцсети ──────────────────────────────────────────────── */
@@ -1229,7 +1229,7 @@ body.menu-open {
 .ce-row {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 1rem;
+  gap: 0.1rem;
 }
 
 .ce-group {
@@ -1496,11 +1496,23 @@ body.menu-open {
   line-height: 1;
 }
 
+
+
 .ce-dot {
   font-size: 0.72rem;
   font-weight: 900;
   line-height: 1;
 }
+
+
+
+.ce-social-icon.phone {
+  background: #e8f2ee;
+  color: #3d6c64;
+}
+
+
+
 
 /* #endregion */
 
