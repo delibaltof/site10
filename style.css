@@ -705,7 +705,7 @@ body.menu-open {
   margin: 0 auto;
   padding-top: 4rem;
   padding-bottom: 2rem;
-  overflow: visible;
+  overflow: hidden;
 }
 
 #services::before {
@@ -999,9 +999,6 @@ body.menu-open {
   flex-direction: column;
   flex-shrink: 0;
   flex: 0 0 var(--review-card-w);
-  box-shadow:
-    0 2px 20px rgba(0, 0, 0, 0.07),
-    0 20px 40px rgba(231, 231, 231, 0.15);
 }
 
 .review-card__body {
