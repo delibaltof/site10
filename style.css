@@ -1743,9 +1743,9 @@ body.menu-open {
     display: block;
   }
 
-  #certificates .certificates_container .cert-card:nth-last-child(-n + 2) {
+  /* #certificates .certificates_container .cert-card:nth-last-child(-n + 2) {
     display: none;
-  }
+  } */
 
   /* ---------------- Services ---------------- */
 
